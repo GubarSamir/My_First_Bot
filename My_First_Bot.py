@@ -2,15 +2,23 @@ import telebot
 import datetime
 from telebot import types
 import requests
+import datetime
+import schedule
+import threading
+import time
+
+today = datetime.datetime.today()
+date = today.strftime("%Y-%m-%d")
 
 API_TOKEN = '1731631692:AAFZjOqzeQHcFmVFtNGLSPLnYg4gaR5qpng'
 bot = telebot.TeleBot(API_TOKEN)
 
-time = str(datetime.date.today()).replace('-', '')
+time1 = str(datetime.date.today()).replace('-', '')
+
 
 class Exchange():
     val = "USD"
-    date = time
+    date = time1
 
     def __init__(self, v, d):
         if not isinstance(v, str):
@@ -58,6 +66,20 @@ def EUR():
 dollar = str(*USD())
 euro = str(*EUR())
 
+
+def bitkoin():
+    try:
+        bit = requests.get('https://apirone.com/api/v1/ticker?currency=btc')
+        bit = bit.json()
+        return str(bit['UAH'])
+    except:
+        raise ConnectionError
+
+
+bitok = bitkoin()
+bitok = f'Биткоин to UAH: -> {bitok[9:-1]}'
+
+
 def corona():
     url = "https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/stats"
 
@@ -76,17 +98,20 @@ def corona():
     odessa = stat1[16]
     statistic = [value for key, value in odessa.items()]
     statistic = statistic[5:]
-    finish = f'Статистика Одесская Оласть\nПодтвержденный у {statistic[0]} человек \nУмерло {statistic[1]} человек \nВыздоровели {statistic[2]} человек'
+    finish = f'Дата {date}\nСтатистика за все время\nОдесская Область\nПодтвержденный у {statistic[0]} человек \nУмерло {statistic[1]} человек \nВыздоровели {statistic[2]} человек'
     return finish
+
 coronaV = str(corona())
+
 
 @bot.message_handler(commands=['start'])
 def start_keyboard(message):
     keyboard = types.ReplyKeyboardMarkup()
     keyboard = types.ReplyKeyboardMarkup(row_width=1)
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    keyboard.add('USD', 'EUR', 'COVID Statistic')
-    bot.send_message(message.chat.id, 'Выбери действие', reply_markup=keyboard)
+    keyboard.add('USD', 'EUR', 'Bitcoin', 'COVID Statistic')
+    bot.send_message(message.chat.id, 'Выберите действие', reply_markup=keyboard)
+
 
 @bot.message_handler(content_types=['text'])
 def end_text(message):
@@ -94,6 +119,8 @@ def end_text(message):
         bot.send_message(message.chat.id, 'Привет')
     if message.text.lower().strip() == 'usd':
         bot.send_message(message.chat.id, dollar)
+    if message.text.lower().strip() == 'bitcoin':
+        bot.send_message(message.chat.id, bitok)
     if message.text == 'COVID Statistic':
         bot.send_message(message.chat.id, coronaV)
     if message.text.lower().strip() == 'eur':
@@ -101,7 +128,7 @@ def end_text(message):
     elif message.text.lower().strip() == 'пока':
         bot.send_message(message.chat.id, 'До свидания')
     elif message.text.lower().strip() == 'покажись':
-        my_photo = open(r'C:\Users\sem777\PycharmProjects\1.jpg', 'rb')
+        my_photo = open(r'1.jpg', 'rb')
         bot.send_photo(message.chat.id, my_photo)
 
 bot.polling()
